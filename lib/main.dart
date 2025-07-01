@@ -23,12 +23,14 @@ class MenuButtons extends StatelessWidget {
   final List<String> options;
   final int selectedIndex;
   final void Function(int index) onSelect;
+  final double buttonFontSize;
 
   const MenuButtons({
     super.key,
     required this.options,
     required this.selectedIndex,
     required this.onSelect,
+    required this.buttonFontSize,
   });
 
   @override
@@ -41,6 +43,7 @@ class MenuButtons extends StatelessWidget {
           label: options[index],
           isSelected: selectedIndex == index,
           onTap: () => onSelect(index),
+          buttonFontSize: buttonFontSize,
         );
       }),
     );
@@ -51,11 +54,13 @@ class _MenuButton extends StatefulWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
+  final double buttonFontSize;
 
   const _MenuButton({
     required this.label,
     required this.isSelected,
     required this.onTap,
+    required this.buttonFontSize,
   });
 
   @override
@@ -74,7 +79,7 @@ class _MenuButtonState extends State<_MenuButton> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          padding: EdgeInsets.symmetric(vertical: widget.buttonFontSize * 0.8, horizontal: widget.buttonFontSize * 1.6),
           margin: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
             color: widget.isSelected
@@ -88,7 +93,7 @@ class _MenuButtonState extends State<_MenuButton> {
             widget.label,
             style: GoogleFonts.robotoMono(
               color: Colors.white,
-              fontSize: 10,
+              fontSize: widget.buttonFontSize,
 
               fontWeight: widget.isSelected
                   ? FontWeight.bold
@@ -114,7 +119,7 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
   ];
   String _cityName = 'Napoli';
   DateTime _cityTime = DateTime.now().toUtc().add(const Duration(hours: 2));
-  DateTime? _birthday; 
+  DateTime? _birthday;
   bool _isBirthdaySet = false;
 
   void _updateCity() {
@@ -201,32 +206,39 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
     });
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(double fontSize) {
     final now = DateTime.now();
 
     switch (selectedIndex) {
       case 0:
-        return Text(
+        return FittedBox( 
+        fit: BoxFit.scaleDown,
+        child: Text(
           _time,
-          style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
-        );
+          style: GoogleFonts.robotoMono(fontSize: fontSize, color: Colors.white), 
+        ),
+      );
       case 1:
-        return Text(
-          "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}",
-          style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}",
+            style: GoogleFonts.robotoMono(fontSize: fontSize, color: Colors.white),
+          ),
         );
       case 2:
-        return Text(
-          "${now.hour.toString().padLeft(2, '0')}",
-          style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            "${now.hour.toString().padLeft(2, '0')}",
+            style: GoogleFonts.robotoMono(fontSize: fontSize, color: Colors.white),
+          ),
         );
       case 3:
         final now = DateTime.now();
         final hour = now.hour;
         final minute = now.minute;
-        final time =
-            hour +
-            (minute / 60); 
+        final time = hour + (minute / 60);
 
         String message;
 
@@ -251,47 +263,60 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
         } else {
           message = "Nessun pasto";
         }
-        return Center(
+        return FittedBox(
+          fit: BoxFit.scaleDown,
           child: Text(
             message,
-            style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
+            style: GoogleFonts.robotoMono(fontSize: fontSize, color: Colors.white),
           ),
         );
       case 4:
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Center(
-              child: Text(
-                "$_cityName:\n ${_cityTime.hour.toString().padLeft(2, '0')}:${_cityTime.minute.toString().padLeft(2, '0')}",
-                style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
-              ),
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            "$_cityName: ${_cityTime.hour.toString().padLeft(2, '0')}:${_cityTime.minute.toString().padLeft(2, '0')}",
+            style: GoogleFonts.robotoMono(
+              fontSize: fontSize,
+              color: Colors.white,
             ),
-          ],
+            textAlign: TextAlign.center,
+          ),
         );
       case 5:
-        return Text(
-          "Adesso",
-          style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            "Adesso",
+            style: GoogleFonts.robotoMono(fontSize: fontSize, color: Colors.white),
+          ),
         );
       case 6:
         if (!_isBirthdaySet) {
-          return Center(
+          return FittedBox(
+            fit: BoxFit.scaleDown,
             child: Text(
               "Seleziona 'Countdown 80° compleanno' dal menu per inserire la tua data di nascita.",
-              style: GoogleFonts.robotoMono(fontSize: 18, color: Colors.white),
+              style: GoogleFonts.robotoMono(fontSize: fontSize, color: Colors.white),
               textAlign: TextAlign.center,
             ),
           );
         } else {
           final now = DateTime.now();
-          final eightyYearsOld = DateTime(_birthday!.year + 80, _birthday!.month, _birthday!.day);
+          final eightyYearsOld = DateTime(
+            _birthday!.year + 80,
+            _birthday!.month,
+            _birthday!.day,
+          );
 
           if (now.isAfter(eightyYearsOld)) {
-            return Center(
+            return FittedBox(
+              fit: BoxFit.scaleDown,
               child: Text(
-                "Ogni ticchettio un ricordo, ogni secondo un tesoro. Il tempo è un capolavoro.",
-                style: GoogleFonts.robotoMono(fontSize: 20, color: Colors.white),
+                "Ogni ticchettio un ricordo,\nogni secondo un tesoro.\nIl tempo è un capolavoro.",
+                style: GoogleFonts.robotoMono(
+                  fontSize: fontSize,
+                  color: Colors.white,
+                ),
                 textAlign: TextAlign.center,
               ),
             );
@@ -302,17 +327,23 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
             final minutes = remaining.inMinutes % 60;
             final seconds = remaining.inSeconds % 60;
 
-            return Center(
+            return FittedBox(
+              fit: BoxFit.scaleDown,
               child: Text(
-                "Mancano $days giorni, $hours ore, $minutes minuti e $seconds secondi al tuo 80° compleanno!",
-                style: GoogleFonts.robotoMono(fontSize: 20, color: Colors.white),
+                "\nMancano $days giorni,\n$hours ore,\n$minutes\nminuti e\n$seconds secondi\nal tuo 80° compleanno!\n",
+                style: GoogleFonts.robotoMono(
+                  fontSize: fontSize,
+                  color: Colors.white,
+                ),
                 textAlign: TextAlign.center,
               ),
             );
           }
         }
       case 7:
-        return Text("🕊️", style: TextStyle(fontSize: 24));
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text("🕊️", style: TextStyle(fontSize: fontSize)));
       default:
         return const SizedBox.shrink();
     }
@@ -337,6 +368,9 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
               final width = constraints.maxWidth;
               final height = constraints.maxHeight;
 
+              final double displayFontSize = width * 0.03;
+              final double menuButtonFontSize = width * 0.01;
+
               return Stack(
                 children: [
                   Image.asset('assets/timebox.png', fit: BoxFit.cover),
@@ -348,7 +382,7 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
                       width: width * 0.33,
                       height: height * 0.31,
                       color: Colors.black,
-                      child: Center(child: _buildContent()),
+                      child: Center(child: _buildContent(displayFontSize)),
                     ),
                   ),
 
@@ -361,26 +395,46 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: MenuButtons(
-                        options: [
-                          '1. Orario',
-                          '2. Orario (fino ai minuti)',
-                          '3. Orario (solo ore)',
-                          '4. Orario dei pasti',
-                          '5. Orario nelle città con la N',
-                          '6. Adesso', 
-                          '7. Countdown 80° compleanno', 
-                          '8. Figura di un uccellino',
-                        ],
-                        selectedIndex: selectedIndex,
-                        onSelect: (index) async { 
-                          setState(() {
-                            selectedIndex = index;
-                          });
-                          if (index == 6 && !_isBirthdaySet) {
-                            await _selectBirthday(context); 
-                          }
-                        },
+                      child: SingleChildScrollView(
+                        child: MenuButtons(
+                          options: [
+                            '1. Orario',
+                            '2. Orario (fino ai minuti)',
+                            '3. Orario (solo ore)',
+                            '4. Orario dei pasti',
+                            '5. Orario nelle città con la N',
+                            '6. Adesso',
+                            '7. Countdown 80° compleanno',
+                            '8. Figura di un uccellino',
+                          ],
+                          selectedIndex: selectedIndex,
+                          onSelect: (index) async {
+                            setState(() {
+                              selectedIndex = index;
+                            });
+                            if (index == 6 && !_isBirthdaySet) {
+                              await _selectBirthday(context);
+                            }
+                          },
+                          buttonFontSize: menuButtonFontSize,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  Positioned(
+                    bottom:
+                        height *
+                        0.02, 
+                    left:
+                        width *
+                        0.03, 
+                    child: Text(
+                      'Da un\'idea di Paolo Casarini\nIl mio GitHub: github.com/nicolagulmini',
+                      style: GoogleFonts.robotoMono(
+                        color: Colors
+                            .white70, 
+                        fontSize: 8, 
                       ),
                     ),
                   ),
