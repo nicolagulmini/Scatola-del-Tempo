@@ -1,6 +1,7 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(
@@ -113,6 +114,8 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
   ];
   String _cityName = 'Napoli';
   DateTime _cityTime = DateTime.now().toUtc().add(const Duration(hours: 2));
+  DateTime? _birthday; 
+  bool _isBirthdaySet = false;
 
   void _updateCity() {
     final random =
@@ -132,6 +135,7 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
   @override
   void initState() {
     super.initState();
+    _loadBirthday();
     _updateTime();
     _updateCity();
     _cityTimer = Timer.periodic(
@@ -140,6 +144,38 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
     );
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
+  }
+
+  Future<void> _loadBirthday() async {
+    final prefs = await SharedPreferences.getInstance();
+    final birthdayMillis = prefs.getInt('user_birthday');
+    if (birthdayMillis != null) {
+      setState(() {
+        _birthday = DateTime.fromMillisecondsSinceEpoch(birthdayMillis);
+        _isBirthdaySet = true;
+      });
+    }
+  }
+
+  Future<void> _saveBirthday(DateTime birthday) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('user_birthday', birthday.millisecondsSinceEpoch);
+    setState(() {
+      _birthday = birthday;
+      _isBirthdaySet = true;
+    });
+  }
+
+  Future<void> _selectBirthday(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().subtract(const Duration(days: 365 * 20)),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _birthday) {
+      _saveBirthday(picked);
+    }
   }
 
   void _updateTime() {
@@ -172,17 +208,17 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
       case 0:
         return Text(
           _time,
-          style: GoogleFonts.robotoMono(fontSize: 48, color: Colors.white),
+          style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
         );
       case 1:
         return Text(
           "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}",
-          style: GoogleFonts.robotoMono(fontSize: 48, color: Colors.white),
+          style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
         );
       case 2:
         return Text(
           "${now.hour.toString().padLeft(2, '0')}",
-          style: GoogleFonts.robotoMono(fontSize: 48, color: Colors.white),
+          style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
         );
       case 3:
         final now = DateTime.now();
@@ -200,45 +236,83 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
           message = "Colazione";
         } else if (time >= 11.5 && time <= 14) {
           message = "Ora di pranzo";
+        } else if (time > 14 && time <= 16) {
+          message = "Hai appena pranzato";
         } else if (time > 14 && time <= 17.5) {
           message = "Merenda";
+        } else if (time > 17.5 && time <= 19.5) {
+          message = "Aperitivooo";
         } else if (time >= 19.5 && time <= 21.5) {
           message = "Ora di cena";
+        } else if (time >= 21.5 && time <= 23) {
+          message = "Hai appena cenato";
+        } else if (time >= 23 && time <= 23.9) {
+          message = "Quasi mezzanotte";
         } else {
-          message = "Nessun pasto in programma";
+          message = "Nessun pasto";
         }
         return Center(
           child: Text(
             message,
-            style: GoogleFonts.robotoMono(fontSize: 20, color: Colors.white),
+            style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
           ),
         );
       case 4:
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              "$_cityName: ${_cityTime.hour.toString().padLeft(2, '0')}:${_cityTime.minute.toString().padLeft(2, '0')}",
-              style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
+            Center(
+              child: Text(
+                "$_cityName:\n ${_cityTime.hour.toString().padLeft(2, '0')}:${_cityTime.minute.toString().padLeft(2, '0')}",
+                style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
+              ),
             ),
           ],
         );
       case 5:
         return Text(
           "Adesso",
-          style: GoogleFonts.robotoMono(fontSize: 48, color: Colors.white),
+          style: GoogleFonts.robotoMono(fontSize: 24, color: Colors.white),
         );
       case 6:
-        final now = DateTime.now();
-        final midnight = DateTime(now.year, now.month, now.day + 1);
-        final remaining = midnight.difference(now);
-        return Text(
-          "${remaining.inHours}h ${remaining.inMinutes % 60}m ${remaining.inSeconds % 60}s",
-          style: GoogleFonts.robotoMono(fontSize: 32, color: Colors.white),
-        );
-        // DA IMPLEMENTARE!
+        if (!_isBirthdaySet) {
+          return Center(
+            child: Text(
+              "Seleziona 'Countdown 80° compleanno' dal menu per inserire la tua data di nascita.",
+              style: GoogleFonts.robotoMono(fontSize: 18, color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+          );
+        } else {
+          final now = DateTime.now();
+          final eightyYearsOld = DateTime(_birthday!.year + 80, _birthday!.month, _birthday!.day);
+
+          if (now.isAfter(eightyYearsOld)) {
+            return Center(
+              child: Text(
+                "Ogni ticchettio un ricordo, ogni secondo un tesoro. Il tempo è un capolavoro.",
+                style: GoogleFonts.robotoMono(fontSize: 20, color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+            );
+          } else {
+            final remaining = eightyYearsOld.difference(now);
+            final days = remaining.inDays;
+            final hours = remaining.inHours % 24;
+            final minutes = remaining.inMinutes % 60;
+            final seconds = remaining.inSeconds % 60;
+
+            return Center(
+              child: Text(
+                "Mancano $days giorni, $hours ore, $minutes minuti e $seconds secondi al tuo 80° compleanno!",
+                style: GoogleFonts.robotoMono(fontSize: 20, color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+            );
+          }
+        }
       case 7:
-        return Text("🕊️", style: GoogleFonts.robotoMono(fontSize: 48));
+        return Text("🕊️", style: TextStyle(fontSize: 24));
       default:
         return const SizedBox.shrink();
     }
@@ -285,7 +359,6 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
                       width: width * 0.3,
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        //color: Colors.black.withAlpha(10),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: MenuButtons(
@@ -295,15 +368,18 @@ class _ClockWallpaperState extends State<ClockWallpaper> {
                           '3. Orario (solo ore)',
                           '4. Orario dei pasti',
                           '5. Orario nelle città con la N',
-                          '6. Adesso',
-                          '7. Countdown',
+                          '6. Adesso', 
+                          '7. Countdown 80° compleanno', 
                           '8. Figura di un uccellino',
                         ],
                         selectedIndex: selectedIndex,
-                        onSelect: (index) {
+                        onSelect: (index) async { 
                           setState(() {
                             selectedIndex = index;
                           });
+                          if (index == 6 && !_isBirthdaySet) {
+                            await _selectBirthday(context); 
+                          }
                         },
                       ),
                     ),
